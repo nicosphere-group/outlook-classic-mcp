@@ -6,6 +6,12 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Cla
 
 Sending always opens a confirmation window on your screen. Nothing is sent unless you press **Send** yourself.
 
+[![Download](https://img.shields.io/badge/Download-outlook--classic--mcp.mcpb-2563eb?style=for-the-badge)](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb)
+
+1. Download [`outlook-classic-mcp.mcpb`](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb). This is always the latest version; older versions are on the [releases page](https://github.com/nicosphere-group/outlook-classic-mcp/releases).
+2. In Claude Desktop, open **Settings** → **Extensions** → **Advanced settings** → **Install Extension** and choose the file.
+3. Click **Install**. Start classic Outlook, then ask Claude "What came in today?"
+
 ## Features
 
 - **Works with your existing Outlook.** No mail passwords, no server settings, no cloud sign-in.

@@ -6,6 +6,12 @@
 
 送信するときは、必ず画面に確認ウィンドウが出ます。自分で **「送信する」** を押さない限り、メールは送信されません。
 
+[![ダウンロード](https://img.shields.io/badge/%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-outlook--classic--mcp.mcpb-2563eb?style=for-the-badge)](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb)
+
+1. 上のボタンから `outlook-classic-mcp.mcpb` をダウンロードします（zip などに展開する必要はありません）。
+2. Claude デスクトップアプリを開き、「設定」→「拡張機能」→「詳細設定」→「拡張機能をインストール」で、そのファイルを選びます。
+3. 「インストール」を押します。旧式 Outlook を起動してから、Claude に「今日届いたメールを教えて」と頼んでみてください。
+
 ## 特長
 
 - **いまの Outlook をそのまま使う**：メールのパスワードやサーバーの設定、クラウドへのサインインは要りません。
@@ -66,7 +72,7 @@
 
 ### Claude デスクトップアプリ
 
-1. リリースのページから `outlook-classic-mcp.mcpb` をダウンロードします。まだリリースは公開していません。それまでは、下の[ビルド](#ビルド)の手順でファイルを作ってください。
+1. [`outlook-classic-mcp.mcpb`](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb) をダウンロードします。最新版が落ちてきます。過去の版は[リリースのページ](https://github.com/nicosphere-group/outlook-classic-mcp/releases)にあります。
 2. Claude デスクトップアプリの「設定」→「拡張機能」→「詳細設定」→「拡張機能をインストール」で、そのファイルを選びます。
 
 ### Claude Code
