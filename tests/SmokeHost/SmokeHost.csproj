@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The real MCP server wiring with a fake Outlook behind it. Lets the protocol side be
+       exercised on any OS; not part of the shipped product. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OutlookClassicMcp.Core\OutlookClassicMcp.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.*" />
+    <Compile Include="..\OutlookClassicMcp.Tests\Fakes.cs" Link="Fakes.cs" />
+  </ItemGroup>
+
+</Project>

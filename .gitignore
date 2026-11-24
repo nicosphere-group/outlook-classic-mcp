@@ -1,0 +1,6 @@
+bin/
+obj/
+dist/
+extension/server/
+*.mcpb
+audit.log
