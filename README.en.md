@@ -6,11 +6,6 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Cla
 
 Sending always opens a confirmation window on your screen. Nothing is sent unless you press **Send** yourself.
 
-> [!WARNING]
-> **Status: not yet verified on Windows.** All tools below are implemented and pass the automated tests, which run against a stand-in for Outlook. The parts that talk to the real Outlook and the confirmation window have not been run on a real Windows PC yet.
-
-This is not an official Microsoft product.
-
 ## Features
 
 - **Works with your existing Outlook.** No mail passwords, no server settings, no cloud sign-in.

@@ -4,7 +4,7 @@
   "display_name": "Outlook (classic)",
   "version": "0.1.0",
   "description": "Read, search and draft email in classic Outlook on Windows. Sending always asks you first.",
-  "long_description": "Lets Claude read, search and draft email in the classic Outlook desktop app on this PC, using the accounts already set up in Outlook. A draft is sent only after you press Send in a confirmation window on your own screen; Claude cannot press it. Works only with classic Outlook (OUTLOOK.EXE) on Windows. Nothing is sent to any external service. Not an official Microsoft product.",
+  "long_description": "Lets Claude read, search and draft email in the classic Outlook desktop app on this PC, using the accounts already set up in Outlook. A draft is sent only after you press Send in a confirmation window on your own screen; Claude cannot press it. Works only with classic Outlook (OUTLOOK.EXE) on Windows. Nothing is sent to any external service.",
   "author": {
     "name": "outlook-classic-mcp contributors"
   },
