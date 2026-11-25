@@ -19,6 +19,8 @@ jobs:
       - run: npm ci
       - name: Tests (rules, send gate, protocol)
         run: npm test
+      - name: Sample contents for the window pictures
+        run: node scripts/sample-view.mjs
       - name: Helper checks on Windows PowerShell 5.1
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests\helper.tests.ps1
@@ -28,3 +30,8 @@ jobs:
         with:
           name: outlook-classic-mcp
           path: dist/outlook-classic-mcp.mcpb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: confirm-window-pictures
+          path: dist/confirm-window-*.png
+          if-no-files-found: ignore

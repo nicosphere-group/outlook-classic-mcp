@@ -4,6 +4,7 @@ export const TEXT = {
   ja: {
     title: "メールを送信しますか？",
     heading: "このメールを送信しますか？",
+    subheading: "内容を確認して、送信する場合は「送信する」を押してください。",
     from: "差出人",
     to: "宛先",
     cc: "CC",
@@ -25,6 +26,7 @@ export const TEXT = {
   en: {
     title: "Send this email?",
     heading: "Do you want to send this email?",
+    subheading: "Check the details, then press Send if you want to send it.",
     from: "From",
     to: "To",
     cc: "CC",
@@ -61,7 +63,13 @@ const display = (p) => (p.name && p.address && p.name !== p.address ? `${p.name}
 /** Everything the confirmation window displays, already localized. */
 export function buildView(snapshot, warnings, lang) {
   const t = TEXT[pickLanguage(lang)];
-  const people = (list) => (list.length === 0 ? t.none : list.map(display).join("\n"));
+  // "empty" greys a row out; "emphasis" makes the two things people must check stand out.
+  const people = (label, list, emphasis = false) => ({
+    label,
+    value: list.length === 0 ? t.none : list.map(display).join("\n"),
+    empty: list.length === 0,
+    emphasis: emphasis && list.length > 0,
+  });
   const attachments =
     snapshot.attachments.length === 0
       ? t.none
@@ -74,14 +82,20 @@ export function buildView(snapshot, warnings, lang) {
   return {
     title: t.title,
     heading: t.heading,
+    subheading: t.subheading,
     warning_lines: warningLines,
     rows: [
-      { label: t.from, value: display({ name: snapshot.sender_name, address: snapshot.sender_address }) },
-      { label: t.to, value: people(snapshot.to) },
-      { label: t.cc, value: people(snapshot.cc) },
-      { label: t.bcc, value: people(snapshot.bcc) },
-      { label: t.subject, value: snapshot.subject || t.no_subject },
-      { label: t.attachments, value: attachments },
+      {
+        label: t.from,
+        value: display({ name: snapshot.sender_name, address: snapshot.sender_address }),
+        empty: false,
+        emphasis: false,
+      },
+      people(t.to, snapshot.to, true),
+      people(t.cc, snapshot.cc),
+      people(t.bcc, snapshot.bcc),
+      { label: t.subject, value: snapshot.subject || t.no_subject, empty: !snapshot.subject, emphasis: Boolean(snapshot.subject) },
+      { label: t.attachments, value: attachments, empty: snapshot.attachments.length === 0, emphasis: false },
     ],
     body_label: t.body,
     body: snapshot.body,

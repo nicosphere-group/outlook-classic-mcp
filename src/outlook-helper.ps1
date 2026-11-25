@@ -569,40 +569,144 @@ function Invoke-Display($p) {
 
 # ---- the confirmation window ----------------------------------------------------
 # Sending is never the default: closing the window, pressing Enter or Esc, or waiting
-# all mean "do not send".
+# all mean "do not send". Built with WPF, which ships with Windows.
 
-function Add-RichText($box, [string]$text, $font, [int]$indent) {
-    $box.SelectionStart = $box.TextLength
-    $box.SelectionLength = 0
-    $box.SelectionFont = $font
-    $box.SelectionIndent = $indent
-    $box.AppendText($text)
-}
+$CONFIRM_XAML = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="640" Height="700" MinWidth="520" MinHeight="480"
+        WindowStartupLocation="CenterScreen" Topmost="True" ShowInTaskbar="True"
+        Background="#FFFFFF" FontFamily="Yu Gothic UI, Meiryo UI, Segoe UI" FontSize="14"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display">
+  <Window.Resources>
+    <Style x:Key="Btn" TargetType="Button">
+      <Setter Property="Padding" Value="18,7"/>
+      <Setter Property="MinWidth" Value="104"/>
+      <Setter Property="Foreground" Value="#1F1F1F"/>
+      <Setter Property="Background" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#C8C8C8"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Ring" BorderThickness="2" BorderBrush="Transparent" CornerRadius="8" Padding="1">
+              <Border x:Name="Face" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="1" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="#F3F3F3"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="#E6E6E6"/>
+              </Trigger>
+              <Trigger Property="IsFocused" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="#1F1F1F"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Accent" TargetType="Button">
+      <Setter Property="Padding" Value="22,7"/>
+      <Setter Property="MinWidth" Value="120"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Ring" BorderThickness="2" BorderBrush="Transparent" CornerRadius="8" Padding="1">
+              <Border x:Name="Face" Background="#0F6CBD" BorderBrush="#0F6CBD" BorderThickness="1" CornerRadius="5"
+                      Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="#115EA3"/>
+                <Setter TargetName="Face" Property="BorderBrush" Value="#115EA3"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="#0C3B5E"/>
+                <Setter TargetName="Face" Property="BorderBrush" Value="#0C3B5E"/>
+              </Trigger>
+              <Trigger Property="IsFocused" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="#1F1F1F"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Resources>
+  <Grid x:Name="Root" Background="#FFFFFF">
+    <Grid Margin="26,22,26,18">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <TextBlock x:Name="Heading" Grid.Row="0" FontSize="20" FontWeight="SemiBold" Foreground="#1F1F1F" TextWrapping="Wrap"/>
+      <TextBlock x:Name="Sub" Grid.Row="1" Margin="0,5,0,0" FontSize="13" Foreground="#616161" TextWrapping="Wrap"/>
+      <Border x:Name="WarnBox" Grid.Row="2" Margin="0,16,0,0" Background="#FFF4CE" CornerRadius="6" Padding="12,10">
+        <DockPanel>
+          <TextBlock x:Name="WarnIcon" DockPanel.Dock="Left" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                     Foreground="#8A4B00" Margin="0,2,10,0" VerticalAlignment="Top"/>
+          <TextBlock x:Name="WarnText" Foreground="#6B3A00" TextWrapping="Wrap" LineHeight="22"/>
+        </DockPanel>
+      </Border>
+      <ScrollViewer Grid.Row="3" Margin="0,18,0,0" MaxHeight="210" VerticalScrollBarVisibility="Auto" Focusable="False">
+        <Grid x:Name="Fields">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="76"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+        </Grid>
+      </ScrollViewer>
+      <TextBlock x:Name="BodyLabel" Grid.Row="4" Margin="0,10,0,6" Foreground="#757575"/>
+      <Border Grid.Row="5" BorderBrush="#D1D1D1" BorderThickness="1" CornerRadius="6" Background="#FAFAFA" MinHeight="110">
+        <TextBox x:Name="Body" IsReadOnly="True" IsTabStop="False" TextWrapping="Wrap" AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto" BorderThickness="0" Background="Transparent"
+                 Foreground="#1F1F1F" Padding="10,8"/>
+      </Border>
+      <DockPanel Grid.Row="6" Margin="0,18,0,0" LastChildFill="False">
+        <Button x:Name="Cancel" DockPanel.Dock="Left" Style="{StaticResource Btn}" IsCancel="True"/>
+        <Button x:Name="Open" DockPanel.Dock="Left" Style="{StaticResource Btn}" Margin="6,0,0,0"/>
+        <Button x:Name="Send" DockPanel.Dock="Right" Style="{StaticResource Accent}"/>
+      </DockPanel>
+      <TextBlock x:Name="Countdown" Grid.Row="7" Margin="2,10,0,0" FontSize="12" Foreground="#757575"/>
+    </Grid>
+  </Grid>
+</Window>
+'@
 
-function New-DialogButton([string]$text, [string]$decision) {
-    $button = New-Object System.Windows.Forms.Button
-    $button.Text = $text
-    $button.Tag = $decision
-    $button.AutoSize = $true
-    $button.AutoSizeMode = [System.Windows.Forms.AutoSizeMode]::GrowAndShrink
-    $button.Padding = New-Object System.Windows.Forms.Padding(14, 6, 14, 6)
-    $button.Margin = New-Object System.Windows.Forms.Padding(0, 0, 8, 0)
-    $button.Add_Click({
-            $script:dialogDecision = [string]$this.Tag
-            $this.FindForm().Close()
-        })
-    return $button
-}
-
-function Invoke-Confirm($p) {
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-    [System.Windows.Forms.Application]::EnableVisualStyles()
+function Initialize-Windowing {
+    if ($script:windowingReady) { return }
+    Add-Type -AssemblyName PresentationFramework
+    Add-Type -AssemblyName PresentationCore
+    Add-Type -AssemblyName WindowsBase
+    Add-Type -AssemblyName System.Xaml
+    # Touch WPF before any window exists, so it can still switch the process to crisp
+    # (DPI-aware) rendering; once a window has been created that is no longer possible.
+    $null = [System.Windows.Media.Brushes]::White
 
     # This helper is started hidden (so no console window appears), and Windows can apply
     # that "hidden" state to the first window a process shows. Spend it on a throwaway
     # form so it can never land on the confirmation window itself. Harmless otherwise.
-    if (-not $script:windowPrimed) {
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
         $dummy = New-Object System.Windows.Forms.Form
         $dummy.ShowInTaskbar = $false
         $dummy.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::None
@@ -613,146 +717,112 @@ function Invoke-Confirm($p) {
         $dummy.Show()
         $dummy.Close()
         $dummy.Dispose()
-        $script:windowPrimed = $true
-    }
+    } catch { }
+    $script:windowingReady = $true
+}
 
-    $view = $p.view
+function New-FieldText([string]$text, [string]$color, [bool]$bold, [int]$row, [int]$column) {
+    $block = New-Object System.Windows.Controls.TextBlock
+    $block.Text = $text
+    $block.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    $block.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString($color)
+    if ($bold) { $block.FontWeight = [System.Windows.FontWeights]::SemiBold }
+    if ($column -eq 0) {
+        $block.Margin = New-Object System.Windows.Thickness(0, 0, 18, 9)
+    } else {
+        $block.Margin = New-Object System.Windows.Thickness(0, 0, 0, 9)
+    }
+    [System.Windows.Controls.Grid]::SetRow($block, $row)
+    [System.Windows.Controls.Grid]::SetColumn($block, $column)
+    return $block
+}
+
+# Builds the window from the already-localized view. Does not show it.
+function New-ConfirmWindow($view, [int]$timeoutSeconds) {
+    Initialize-Windowing
+    [xml]$document = $CONFIRM_XAML
+    $window = [System.Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader $document))
+
     $script:dialogDecision = 'cancel'
-    $script:dialogRemaining = [int]$p.timeout
+    $script:dialogRemaining = $timeoutSeconds
     $script:dialogFormat = [string]$view.countdown_format
+    $script:dialogWindow = $window
 
-    $baseFont = [System.Drawing.SystemFonts]::MessageBoxFont
-    $font = New-Object System.Drawing.Font($baseFont.FontFamily, 10)
-    $bold = New-Object System.Drawing.Font($font, [System.Drawing.FontStyle]::Bold)
-    $headingFont = New-Object System.Drawing.Font($baseFont.FontFamily, 13, [System.Drawing.FontStyle]::Bold)
+    $window.Title = [string]$view.title
+    $window.FindName('Heading').Text = [string]$view.heading
+    $window.FindName('Sub').Text = [string]$view.subheading
+    $window.FindName('BodyLabel').Text = [string]$view.body_label
+    $window.FindName('Body').Text = [string]$view.body
 
-    $form = New-Object System.Windows.Forms.Form
-    $script:dialogForm = $form
-    $form.Text = [string]$view.title
-    $form.Font = $font
-    $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
-    $form.ClientSize = New-Object System.Drawing.Size(720, 560)
-    $form.MinimumSize = New-Object System.Drawing.Size(560, 420)
-    $form.MinimizeBox = $false
-    $form.ShowIcon = $false
-    $form.ShowInTaskbar = $true
-    $form.TopMost = $true
-    $form.Padding = New-Object System.Windows.Forms.Padding(14)
-
-    $layout = New-Object System.Windows.Forms.TableLayoutPanel
-    $layout.Dock = [System.Windows.Forms.DockStyle]::Fill
-    $layout.ColumnCount = 1
-    $layout.RowCount = 5
-    $null = $layout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 100)))
-    $null = $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::AutoSize)))
-    $null = $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::AutoSize)))
-    $null = $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100)))
-    $null = $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::AutoSize)))
-    $null = $layout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::AutoSize)))
-
-    $heading = New-Object System.Windows.Forms.Label
-    $heading.Text = [string]$view.heading
-    $heading.Font = $headingFont
-    $heading.AutoSize = $true
-    $heading.Margin = New-Object System.Windows.Forms.Padding(0, 0, 0, 8)
-    $layout.Controls.Add($heading, 0, 0)
-
-    $warningLines = New-Object System.Collections.Generic.List[string]
+    $warnings = New-Object System.Collections.Generic.List[string]
     foreach ($line in @($view.warning_lines)) {
-        if ($null -ne $line -and ([string]$line).Length -gt 0) { $warningLines.Add(([string][char]0x26A0) + ' ' + [string]$line) }
+        if ($null -ne $line -and ([string]$line).Length -gt 0) { $warnings.Add([string]$line) }
     }
-    if ($warningLines.Count -gt 0) {
-        $warning = New-Object System.Windows.Forms.Label
-        $warning.Text = [string]::Join([Environment]::NewLine, $warningLines.ToArray())
-        $warning.Font = $bold
-        $warning.BackColor = [System.Drawing.Color]::FromArgb(255, 244, 206)
-        $warning.ForeColor = [System.Drawing.Color]::FromArgb(138, 31, 17)
-        $warning.AutoSize = $true
-        $warning.Dock = [System.Windows.Forms.DockStyle]::Fill
-        $warning.Padding = New-Object System.Windows.Forms.Padding(10, 8, 10, 8)
-        $warning.Margin = New-Object System.Windows.Forms.Padding(0, 0, 0, 8)
-        $layout.Controls.Add($warning, 0, 1)
+    if ($warnings.Count -gt 0) {
+        $window.FindName('WarnIcon').Text = [string][char]0xE7BA
+        $window.FindName('WarnText').Text = [string]::Join("`n", $warnings.ToArray())
+    } else {
+        $window.FindName('WarnBox').Visibility = [System.Windows.Visibility]::Collapsed
     }
 
-    $text = New-Object System.Windows.Forms.RichTextBox
-    $text.ReadOnly = $true
-    $text.Dock = [System.Windows.Forms.DockStyle]::Fill
-    $text.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-    $text.BackColor = [System.Drawing.Color]::White
-    $text.DetectUrls = $false   # links in an email must not be clickable from here
-    $text.TabStop = $false
-    $text.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
-    $text.WordWrap = $true
+    $fields = $window.FindName('Fields')
+    $index = 0
     foreach ($row in @($view.rows)) {
-        Add-RichText $text ([string]$row.label + "`n") $bold 0
-        Add-RichText $text ([string]$row.value + "`n") $font 24
+        $definition = New-Object System.Windows.Controls.RowDefinition
+        $definition.Height = [System.Windows.GridLength]::Auto
+        $fields.RowDefinitions.Add($definition)
+        $valueColor = '#1F1F1F'
+        if ([bool]$row.empty) { $valueColor = '#9E9E9E' }
+        $null = $fields.Children.Add((New-FieldText ([string]$row.label) '#757575' $false $index 0))
+        $null = $fields.Children.Add((New-FieldText ([string]$row.value) $valueColor ([bool]$row.emphasis) $index 1))
+        $index++
     }
-    Add-RichText $text ("`n" + [string]$view.body_label + "`n") $bold 0
-    Add-RichText $text ([string]$view.body + "`n") $font 0
-    $text.Select(0, 0)
-    $layout.Controls.Add($text, 0, 2)
 
-    $send = New-DialogButton ([string]$view.send_text) 'send'
-    $open = New-DialogButton ([string]$view.open_text) 'open'
-    $cancel = New-DialogButton ([string]$view.cancel_text) 'cancel'
+    $cancel = $window.FindName('Cancel')
+    $open = $window.FindName('Open')
+    $send = $window.FindName('Send')
+    $cancel.Content = [string]$view.cancel_text
+    $open.Content = [string]$view.open_text
+    $send.Content = [string]$view.send_text
+    $cancel.Add_Click({ $script:dialogDecision = 'cancel'; $script:dialogWindow.Close() })
+    $open.Add_Click({ $script:dialogDecision = 'open'; $script:dialogWindow.Close() })
+    $send.Add_Click({ $script:dialogDecision = 'send'; $script:dialogWindow.Close() })
 
-    $buttons = New-Object System.Windows.Forms.TableLayoutPanel
-    $buttons.Dock = [System.Windows.Forms.DockStyle]::Fill
-    $buttons.AutoSize = $true
-    $buttons.ColumnCount = 4
-    $buttons.RowCount = 1
-    $buttons.Margin = New-Object System.Windows.Forms.Padding(0, 12, 0, 0)
-    $null = $buttons.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::AutoSize)))
-    $null = $buttons.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::AutoSize)))
-    $null = $buttons.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 100)))
-    $null = $buttons.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::AutoSize)))
-    $buttons.Controls.Add($send, 0, 0)
-    $buttons.Controls.Add($open, 1, 0)
-    $buttons.Controls.Add($cancel, 3, 0)
-    $layout.Controls.Add($buttons, 0, 3)
+    $script:dialogCountdown = $window.FindName('Countdown')
+    $script:dialogCountdown.Text = [string]::Format($script:dialogFormat, $script:dialogRemaining)
 
-    $countdown = New-Object System.Windows.Forms.Label
-    $script:dialogCountdown = $countdown
-    $countdown.AutoSize = $true
-    $countdown.ForeColor = [System.Drawing.Color]::DimGray
-    $countdown.Margin = New-Object System.Windows.Forms.Padding(0, 8, 0, 0)
-    $countdown.Text = [string]::Format($script:dialogFormat, $script:dialogRemaining)
-    $layout.Controls.Add($countdown, 0, 4)
-    $form.Controls.Add($layout)
-
-    # No AcceptButton: Enter never means "send". Focus starts on "Don't send", so Enter or
+    # No default button: Enter never means "send". Focus starts on "Don't send", so Enter or
     # Space there, Esc, and closing the window all decline.
-    $form.CancelButton = $cancel
-    $form.ActiveControl = $cancel
+    $window.Add_ContentRendered({
+            # Bring the window in front of everything else. Windows may refuse to give the
+            # keyboard focus to a background program, but re-asserting "always on top" after
+            # the window exists still puts it above the other windows.
+            $script:dialogWindow.Topmost = $false
+            $script:dialogWindow.Topmost = $true
+            $null = $script:dialogWindow.Activate()
+            $null = $script:dialogWindow.FindName('Cancel').Focus()
+        })
+    return $window
+}
 
-    $timer = New-Object System.Windows.Forms.Timer
-    $timer.Interval = 1000
+function Invoke-Confirm($p) {
+    $window = New-ConfirmWindow $p.view ([int]$p.timeout)
+    $timer = New-Object System.Windows.Threading.DispatcherTimer
+    $timer.Interval = [System.TimeSpan]::FromSeconds(1)
     $timer.Add_Tick({
             $script:dialogRemaining = $script:dialogRemaining - 1
             if ($script:dialogRemaining -le 0) {
                 $script:dialogDecision = 'timeout'
-                $script:dialogForm.Close()
+                $script:dialogWindow.Close()
             } else {
                 $script:dialogCountdown.Text = [string]::Format($script:dialogFormat, $script:dialogRemaining)
             }
         })
-    $form.Add_Shown({
-            # Bring the window in front of everything else. Windows may refuse to give the
-            # keyboard focus to a background program, but re-asserting "always on top" after
-            # the window exists still puts it above the other windows.
-            $this.TopMost = $false
-            $this.TopMost = $true
-            $this.BringToFront()
-            $this.Activate()
-        })
-
     try {
         $timer.Start()
-        $null = $form.ShowDialog()
+        $null = $window.ShowDialog()
     } finally {
         $timer.Stop()
-        $timer.Dispose()
-        $form.Dispose()
     }
     return @{ decision = [string]$script:dialogDecision }
 }

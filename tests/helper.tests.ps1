@@ -296,9 +296,13 @@ Check 'cannot send twice' $r.kind 'not_draft'
 if ([Environment]::UserInteractive) {
     try {
         $view = @{
-            title = 'Send this email?'; heading = 'Do you want to send this email?'
+            title = 'Send this email?'; heading = 'Do you want to send this email?'; subheading = 'Check the details.'
             warning_lines = @('There are 12 recipients.')
-            rows = @(@{ label = 'To'; value = 'a@example.com' }, @{ label = 'Subject'; value = $jp })
+            rows = @(
+                @{ label = 'To'; value = 'a@example.com'; empty = $false; emphasis = $true },
+                @{ label = 'CC'; value = 'None'; empty = $true; emphasis = $false },
+                @{ label = 'Subject'; value = $jp; empty = $false; emphasis = $true }
+            )
             body_label = 'Message'; body = "line 1`nline 2"
             send_text = 'Send'; open_text = 'Open in Outlook to check'; cancel_text = "Don't send"
             countdown_format = 'Closes automatically in {0} seconds'
@@ -306,8 +310,55 @@ if ([Environment]::UserInteractive) {
         $r = Ask 'confirm' @{ view = $view; timeout = 2 }
         Check 'window ok' $r.ok $true
         Check 'an unanswered window means timeout, never send' $r.result.decision 'timeout'
+
+        # What each button answers, and that nothing answers "send" by default.
+        $jsonView = ConvertFrom-Json -InputObject (ConvertTo-Json -InputObject $view -Depth 6)
+        foreach ($case in @(@('Send', 'send'), @('Open', 'open'), @('Cancel', 'cancel'))) {
+            $w = New-ConfirmWindow $jsonView 30
+            $button = $w.FindName($case[0])
+            $button.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent)))
+            Check ("button " + $case[0] + " answers " + $case[1]) $script:dialogDecision $case[1]
+        }
+        $w = New-ConfirmWindow $jsonView 30
+        Check 'a freshly built window answers cancel until a button is pressed' $script:dialogDecision 'cancel'
+        Check 'the send button is not the default button' $w.FindName('Send').IsDefault $false
+        Check 'the cancel button is the Esc button' $w.FindName('Cancel').IsCancel $true
+        Check 'button order: cancel, open on the left; send on the right' (
+            [string][System.Windows.Controls.DockPanel]::GetDock($w.FindName('Cancel')) + ',' +
+            [string][System.Windows.Controls.DockPanel]::GetDock($w.FindName('Open')) + ',' +
+            [string][System.Windows.Controls.DockPanel]::GetDock($w.FindName('Send'))) 'Left,Left,Right'
+        $w.Close()
     } catch {
-        Write-Host ("skip window test: " + $_.Exception.Message)
+        Write-Host ("FAIL window test: " + $_.Exception.Message)
+        $script:failures++
+    }
+
+    # Render the real window to pictures, for people to look at.
+    $dist = Join-Path (Split-Path -Parent $PSScriptRoot) 'dist'
+    foreach ($lang in @('ja', 'en')) {
+        $samplePath = Join-Path $dist "sample-view-$lang.json"
+        if (-not (Test-Path $samplePath)) { continue }
+        try {
+            $sample = ConvertFrom-Json -InputObject ([System.IO.File]::ReadAllText($samplePath, [System.Text.Encoding]::UTF8))
+            $w = New-ConfirmWindow $sample 174
+            $w.Show()
+            $w.Dispatcher.Invoke([Action] { }, [System.Windows.Threading.DispatcherPriority]::ContextIdle)
+            $root = $w.Content
+            $scale = 2
+            $bitmap = New-Object System.Windows.Media.Imaging.RenderTargetBitmap(
+                [int]($root.ActualWidth * $scale), [int]($root.ActualHeight * $scale), (96 * $scale), (96 * $scale),
+                [System.Windows.Media.PixelFormats]::Pbgra32)
+            $bitmap.Render($root)
+            $encoder = New-Object System.Windows.Media.Imaging.PngBitmapEncoder
+            $encoder.Frames.Add([System.Windows.Media.Imaging.BitmapFrame]::Create($bitmap))
+            $png = Join-Path $dist "confirm-window-$lang.png"
+            $stream = [System.IO.File]::Create($png)
+            try { $encoder.Save($stream) } finally { $stream.Close() }
+            $w.Close()
+            Write-Host ("picture written: {0} ({1}x{2})" -f $png, $bitmap.PixelWidth, $bitmap.PixelHeight)
+        } catch {
+            Write-Host ("skip picture ($lang): " + $_.Exception.Message)
+        }
     }
 } else {
     Write-Host 'skip window test: no desktop session'
