@@ -599,9 +599,9 @@ function Invoke-Confirm($p) {
     Add-Type -AssemblyName System.Drawing
     [System.Windows.Forms.Application]::EnableVisualStyles()
 
-    # This helper is started hidden (so no console window appears), and Windows applies that
-    # "hidden" state to the first window the process shows. Spend it on a throwaway form,
-    # otherwise the confirmation window itself would be open but invisible.
+    # This helper is started hidden (so no console window appears), and Windows can apply
+    # that "hidden" state to the first window a process shows. Spend it on a throwaway
+    # form so it can never land on the confirmation window itself. Harmless otherwise.
     if (-not $script:windowPrimed) {
         $dummy = New-Object System.Windows.Forms.Form
         $dummy.ShowInTaskbar = $false
@@ -737,10 +737,12 @@ function Invoke-Confirm($p) {
             }
         })
     $form.Add_Shown({
-            # Second line of defence against the window being open but hidden (see above):
-            # changing the window state makes Windows show it for real.
-            $this.WindowState = [System.Windows.Forms.FormWindowState]::Minimized
-            $this.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+            # Bring the window in front of everything else. Windows may refuse to give the
+            # keyboard focus to a background program, but re-asserting "always on top" after
+            # the window exists still puts it above the other windows.
+            $this.TopMost = $false
+            $this.TopMost = $true
+            $this.BringToFront()
             $this.Activate()
         })
 

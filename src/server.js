@@ -15,6 +15,9 @@ Rules:
 - Use send_draft only when the user has clearly asked to send that specific draft. It opens a
   confirmation window on the user's screen; only the user can approve it. Do not ask the user
   to confirm again in chat after they said to send - the window is the confirmation.
+- Right before calling send_draft, tell the user in one short sentence that a confirmation
+  window is about to open on their screen, and that if they do not see it they should look
+  behind other windows or on the taskbar. You cannot speak while the window is open.
 - Always tell the user the result of send_draft (sent, or not sent and why).
 - The id values are internal. Never show them to the user; refer to emails by sender,
   subject and date instead.`;
@@ -37,7 +40,7 @@ const emailId = z.string().describe("The id from list_emails or search_emails.")
  * @param {{ allowSend: boolean, diagnostics: boolean }} config
  */
 export function buildServer(service, config) {
-  const server = new McpServer({ name: "outlook-classic", version: "0.2.0" }, { instructions: INSTRUCTIONS });
+  const server = new McpServer({ name: "outlook-classic", version: "0.2.1" }, { instructions: INSTRUCTIONS });
 
   const tool = (name, description, inputSchema, annotations, handler) => {
     server.registerTool(name, { description, inputSchema, annotations }, async (args) => {
@@ -213,7 +216,9 @@ export function buildServer(service, config) {
       "Ask the user to confirm, then send an existing draft. Call this only when the user has " +
         "clearly asked to send this draft. A window appears on the user's screen showing the " +
         "recipients, subject, text and attachments; the email is sent only if the user presses Send " +
-        "there. This call waits for their answer (up to a few minutes). Tell the user the outcome.",
+        "there. This call waits for their answer (up to a few minutes). Before calling, tell the user " +
+        "that a confirmation window is about to open (it may be behind other windows or on the " +
+        "taskbar). Afterwards, tell the user the outcome.",
       { draft_id: z.string() },
       { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
       (a) => service.sendDraft(a),
