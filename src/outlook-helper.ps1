@@ -599,6 +599,23 @@ function Invoke-Confirm($p) {
     Add-Type -AssemblyName System.Drawing
     [System.Windows.Forms.Application]::EnableVisualStyles()
 
+    # This helper is started hidden (so no console window appears), and Windows applies that
+    # "hidden" state to the first window the process shows. Spend it on a throwaway form,
+    # otherwise the confirmation window itself would be open but invisible.
+    if (-not $script:windowPrimed) {
+        $dummy = New-Object System.Windows.Forms.Form
+        $dummy.ShowInTaskbar = $false
+        $dummy.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::None
+        $dummy.StartPosition = [System.Windows.Forms.FormStartPosition]::Manual
+        $dummy.Location = New-Object System.Drawing.Point(-32000, -32000)
+        $dummy.Size = New-Object System.Drawing.Size(1, 1)
+        $dummy.Opacity = 0
+        $dummy.Show()
+        $dummy.Close()
+        $dummy.Dispose()
+        $script:windowPrimed = $true
+    }
+
     $view = $p.view
     $script:dialogDecision = 'cancel'
     $script:dialogRemaining = [int]$p.timeout

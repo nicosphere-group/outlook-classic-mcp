@@ -47,6 +47,7 @@ test("the confirmation window is visible when the helper is started hidden", { s
   try {
     for (const round of [1, 2]) {
       const answer = backend.confirm(view, 8);
+      answer.catch(() => {}); // reported through the awaits below
       await new Promise((resolve) => setTimeout(resolve, 4000));
       assert.equal(await visibleWindows(), 1, `window not visible (round ${round})`);
       assert.equal(await answer, "timeout");
