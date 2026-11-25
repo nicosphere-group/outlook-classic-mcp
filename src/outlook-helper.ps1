@@ -737,6 +737,10 @@ function Invoke-Confirm($p) {
             }
         })
     $form.Add_Shown({
+            # Second line of defence against the window being open but hidden (see above):
+            # changing the window state makes Windows show it for real.
+            $this.WindowState = [System.Windows.Forms.FormWindowState]::Minimized
+            $this.WindowState = [System.Windows.Forms.FormWindowState]::Normal
             $this.Activate()
         })
 
