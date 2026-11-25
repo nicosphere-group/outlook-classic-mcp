@@ -40,7 +40,7 @@ const emailId = z.string().describe("The id from list_emails or search_emails.")
  * @param {{ allowSend: boolean, diagnostics: boolean }} config
  */
 export function buildServer(service, config) {
-  const server = new McpServer({ name: "outlook-classic", version: "0.2.1" }, { instructions: INSTRUCTIONS });
+  const server = new McpServer({ name: "outlook-classic", version: "0.3.0" }, { instructions: INSTRUCTIONS });
 
   const tool = (name, description, inputSchema, annotations, handler) => {
     server.registerTool(name, { description, inputSchema, annotations }, async (args) => {
