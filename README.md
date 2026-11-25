@@ -15,7 +15,7 @@
 ## 特長
 
 - **いまの Outlook をそのまま使う**：メールのパスワードやサーバーの設定、クラウドへのサインインは要りません。
-- **ほかに入れるものがない**：必要なものを 1 つにまとめ、Claude デスクトップアプリの拡張機能として配ります。
+- **ほかに入れるものがない**：Claude デスクトップアプリの拡張機能として配ります。自前の実行ファイルを持たず、Claude に内蔵の Node.js と Windows 標準の PowerShell だけで動きます。
 - **送信には自分のクリックが必要**：確認ウィンドウのボタンを Claude が押すことはできません。
 - **PC の外に出ない**：外部との通信をせず、利用状況も集めません。
 
@@ -80,7 +80,7 @@
 ソースからビルドしたあと、次のように登録します。
 
 ```
-claude mcp add outlook-classic -- C:\path\to\outlook-classic-mcp.exe
+claude mcp add outlook-classic -- node C:\path\to\extension\server\index.js
 ```
 
 ## 使い方
@@ -132,13 +132,17 @@ Outlook を普通に起動してください。Outlook か Claude を「管理�
 
 ## ビルド
 
-必要なもの：.NET 10 SDK と、拡張機能ファイルを作るための Node.js
+必要なもの：Node.js 18 以降
 
 ```
-./build.ps1
+npm ci
+npm test
+npm run pack
 ```
 
-`dist\outlook-classic-mcp.mcpb` と `extension\server\outlook-classic-mcp.exe` ができます。
+`dist/outlook-classic-mcp.mcpb` ができます。この拡張機能は、自前の実行ファイルを持ちません。Claude デスクトップアプリに内蔵されている Node.js の上で動き、Outlook の操作には Windows に標準で入っている PowerShell を使います。
+
+Windows では、`powershell -NoProfile -ExecutionPolicy Bypass -File tests\helper.tests.ps1` で、PowerShell の部分を Outlook の代役を相手に検査できます。
 
 - [skills/outlook-classic/SKILL.md](skills/outlook-classic/SKILL.md)：ツールの安全な使い方を Claude に教えるスキル
 

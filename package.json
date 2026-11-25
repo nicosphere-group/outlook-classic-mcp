@@ -1,0 +1,22 @@
+{
+  "name": "outlook-classic-mcp",
+  "version": "0.2.0",
+  "description": "MCP server for classic Outlook on Windows. Sending always asks the user first.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test",
+    "build": "node scripts/build.mjs",
+    "pack": "node scripts/build.mjs && mcpb pack extension dist/outlook-classic-mcp.mcpb"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "*",
+    "esbuild": "^0.25.0"
+  }
+}

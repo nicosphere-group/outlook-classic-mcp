@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "outlook-classic-mcp",
   "display_name": "Outlook (classic)",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Read, search and draft email in classic Outlook on Windows. Sending always asks you first.",
   "long_description": "Lets Claude read, search and draft email in the classic Outlook desktop app on this PC, using the accounts already set up in Outlook. A draft is sent only after you press Send in a confirmation window on your own screen; Claude cannot press it. Works only with classic Outlook (OUTLOOK.EXE) on Windows. Nothing is sent to any external service.",
   "author": {
@@ -10,11 +10,13 @@
   },
   "license": "MIT",
   "server": {
-    "type": "binary",
-    "entry_point": "server/outlook-classic-mcp.exe",
+    "type": "node",
+    "entry_point": "server/index.js",
     "mcp_config": {
-      "command": "${__dirname}/server/outlook-classic-mcp.exe",
-      "args": [],
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ],
       "env": {
         "OUTLOOK_MCP_ALLOW_SEND": "${user_config.allow_send}",
         "OUTLOOK_MCP_SAVE_DIR": "${user_config.save_dir}",
@@ -46,20 +48,61 @@
     }
   },
   "tools": [
-    { "name": "list_accounts", "description": "List the email accounts and data files set up in Outlook." },
-    { "name": "list_folders", "description": "List mail folders with total and unread counts." },
-    { "name": "list_emails", "description": "List emails in a folder, newest first." },
-    { "name": "search_emails", "description": "Search a folder by subject, sender, body or date." },
-    { "name": "read_email", "description": "Read one email: sender, recipients, body and attachment names." },
-    { "name": "list_attachments", "description": "List the attachments of an email." },
-    { "name": "save_attachment", "description": "Save one attachment into the download folder." },
-    { "name": "create_draft", "description": "Create a new email as a draft. Does not send." },
-    { "name": "create_reply_draft", "description": "Create a reply as a draft. Does not send." },
-    { "name": "create_forward_draft", "description": "Create a forward as a draft. Does not send." },
-    { "name": "update_draft", "description": "Change an unsent draft. Does not send." },
-    { "name": "send_draft", "description": "Send a draft after you press Send in a confirmation window." }
+    {
+      "name": "list_accounts",
+      "description": "List the email accounts and data files set up in Outlook."
+    },
+    {
+      "name": "list_folders",
+      "description": "List mail folders with total and unread counts."
+    },
+    {
+      "name": "list_emails",
+      "description": "List emails in a folder, newest first."
+    },
+    {
+      "name": "search_emails",
+      "description": "Search a folder by subject, sender, body or date."
+    },
+    {
+      "name": "read_email",
+      "description": "Read one email: sender, recipients, body and attachment names."
+    },
+    {
+      "name": "list_attachments",
+      "description": "List the attachments of an email."
+    },
+    {
+      "name": "save_attachment",
+      "description": "Save one attachment into the download folder."
+    },
+    {
+      "name": "create_draft",
+      "description": "Create a new email as a draft. Does not send."
+    },
+    {
+      "name": "create_reply_draft",
+      "description": "Create a reply as a draft. Does not send."
+    },
+    {
+      "name": "create_forward_draft",
+      "description": "Create a forward as a draft. Does not send."
+    },
+    {
+      "name": "update_draft",
+      "description": "Change an unsent draft. Does not send."
+    },
+    {
+      "name": "send_draft",
+      "description": "Send a draft after you press Send in a confirmation window."
+    }
   ],
   "compatibility": {
-    "platforms": ["win32"]
+    "platforms": [
+      "win32"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
   }
 }

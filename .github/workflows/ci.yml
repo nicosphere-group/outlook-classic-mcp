@@ -13,15 +13,17 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Test, build exe and extension file
-        shell: pwsh
-        run: ./build.ps1
+      - run: npm ci
+      - name: Tests (rules, send gate, protocol)
+        run: npm test
+      - name: Helper checks on Windows PowerShell 5.1
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests\helper.tests.ps1
+      - name: Build extension file
+        run: npm run pack
       - uses: actions/upload-artifact@v4
         with:
           name: outlook-classic-mcp

@@ -8,14 +8,14 @@ Sending always opens a confirmation window on your screen. Nothing is sent unles
 
 [![Download](https://img.shields.io/badge/Download-outlook--classic--mcp.mcpb-2563eb?style=for-the-badge)](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb)
 
-1. Download [`outlook-classic-mcp.mcpb`](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb). This is always the latest version; older versions are on the [releases page](https://github.com/nicosphere-group/outlook-classic-mcp/releases).
+1. Download `outlook-classic-mcp.mcpb` with the button above. Do not unzip it.
 2. In Claude Desktop, open **Settings** → **Extensions** → **Advanced settings** → **Install Extension** and choose the file.
 3. Click **Install**. Start classic Outlook, then ask Claude "What came in today?"
 
 ## Features
 
 - **Works with your existing Outlook.** No mail passwords, no server settings, no cloud sign-in.
-- **Nothing extra to install.** One self-contained program, packaged as a Claude Desktop extension.
+- **Nothing extra to install.** A Claude Desktop extension with no executable of its own: it runs on the Node.js built into Claude and on Windows PowerShell, which is part of Windows.
 - **Sending needs your click.** Claude cannot press the buttons in the confirmation window.
 - **Stays on your PC.** The server makes no network connections and collects no usage data.
 
@@ -72,7 +72,7 @@ On Team and Enterprise plans, an administrator may need to allow the extension f
 
 ### Claude Desktop
 
-1. Download `outlook-classic-mcp.mcpb` from the Releases page. No release has been published yet; until then, build the file from source as described under [Building](#building).
+1. Download [`outlook-classic-mcp.mcpb`](https://github.com/nicosphere-group/outlook-classic-mcp/releases/latest/download/outlook-classic-mcp.mcpb). This is always the latest version; older versions are on the [releases page](https://github.com/nicosphere-group/outlook-classic-mcp/releases).
 2. In Claude Desktop, open **Settings** → **Extensions** → **Advanced settings** → **Install Extension** and choose the file.
 
 ### Claude Code
@@ -80,7 +80,7 @@ On Team and Enterprise plans, an administrator may need to allow the extension f
 Build the program from source, then register it:
 
 ```
-claude mcp add outlook-classic -- C:\path\to\outlook-classic-mcp.exe
+claude mcp add outlook-classic -- node C:\path\to\extension\server\index.js
 ```
 
 ## Usage
@@ -132,13 +132,17 @@ The email is placed in Outlook's Outbox and goes out at the next send/receive. K
 
 ## Building
 
-Requirements: .NET 10 SDK, and Node.js for packing the extension file.
+Requirements: Node.js 18 or later.
 
 ```
-./build.ps1
+npm ci
+npm test
+npm run pack
 ```
 
-This produces `dist\outlook-classic-mcp.mcpb` and `extension\server\outlook-classic-mcp.exe`.
+This produces `dist/outlook-classic-mcp.mcpb`. The extension contains no executable of its own: it runs on the Node.js that Claude Desktop ships with, and reaches Outlook through Windows PowerShell, which is part of Windows.
+
+On Windows, `powershell -NoProfile -ExecutionPolicy Bypass -File tests\helper.tests.ps1` checks the PowerShell helper against a stand-in for Outlook.
 
 - [skills/outlook-classic/SKILL.md](skills/outlook-classic/SKILL.md): a skill that teaches Claude how to use the tools safely
 
